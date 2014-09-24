@@ -62,13 +62,13 @@ int f710_update(struct f710 *c)
                 break;
         case V2ID(6, 1): c->back = !!iev.val;                 break;
         case V2ID(6, 2):
-                c->left  = (iev.val == -32767);
-                c->right = (iev.val ==  32767);
+                c->left  = (iev.val == -SHRT_MAX);
+                c->right = (iev.val ==  SHRT_MAX);
                 break;
         case V2ID(7, 1): c->start = !!iev.val;                break;
         case V2ID(7, 2):
-                c->up   = (iev.val == -32767);
-                c->down = (iev.val ==  32767);
+                c->up   = (iev.val == -SHRT_MAX);
+                c->down = (iev.val ==  SHRT_MAX);
                 break;
         case V2ID(8, 1): c->logitech = !!iev.val;             break;
         case V2ID(9, 1): c->ljb = !!iev.val;                  break;
