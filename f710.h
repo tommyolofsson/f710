@@ -28,17 +28,17 @@ struct f710 {
 };
 
 
-/* Opens the gamepad interface and initializes the handle. */
+/* Opens the joystick interface and initializes the structure. */
 int f710_open(struct f710 *c, const char *path);
 
-/* Closes the interface to the gamepad and  */
-int f710_close(struct f710 *c, const char *path);
-
-/* Prints the state of the joystick to stdout. */
-void f710_print(const struct f710 *c);
+/* Closes the joystick interface.   */
+int f710_close(struct f710 *c);
 
 /* Wait for a new event and update the structure. Blocks until change. */
 int f710_update(struct f710 *c);
+
+/* Prints the state of the joystick to stdout. */
+void f710_print(const struct f710 *c);
 
 
 #endif /* F710_H */

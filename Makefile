@@ -1,4 +1,4 @@
-CFLAGS=-Wall -Wextra -Werror -Wno-missing-field-initializers -I .
+CFLAGS=-Wall -Wextra -Werror -Wno-missing-field-initializers -I . -O3
 
 .PHONY: all
 all: test

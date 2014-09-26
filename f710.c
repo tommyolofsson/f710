@@ -1,28 +1,20 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <err.h>
-#include <string.h>
+#include <fcntl.h>
 #include <limits.h>
+#include <linux/joystick.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "f710.h"
 
 
-/* Conversion between a unique ID and the number and type of an event. */
-#define E2ID(iev)  ((short) (iev.num << 8) | (iev.type << 0))
-#define V2ID(n, t) ((short) (      n << 8) | (       t << 0))
-
-
-/* The type of event read from a joystick device. */
-struct input_event {
-        unsigned int  ts;
-        short         val;
-        unsigned char type;
-        unsigned char num;
-};
+/* Make a unique ID from an event. */
+#define V2ID(n, t) (n << 8 | t)
+#define E2ID(iev) V2ID(iev.number, iev.type)
 
 
 int f710_open(struct f710 *c, const char *path)
@@ -34,9 +26,15 @@ int f710_open(struct f710 *c, const char *path)
 }
 
 
+int f710_close(struct f710 *c)
+{
+        return close(c->_fd);
+}
+
+
 int f710_update(struct f710 *c)
 {
-        struct input_event iev;
+        struct js_event iev;
         int ret;
 
         ret = read(c->_fd, &iev, sizeof(iev));
@@ -44,35 +42,35 @@ int f710_update(struct f710 *c)
                 return -1;
 
         switch (E2ID(iev)) {
-        case V2ID(0, 1): c->a  = !!iev.val;                   break;
-        case V2ID(0, 2): c->lx = iev.val / (double) SHRT_MAX; break;
-        case V2ID(1, 1): c->b  = !!iev.val;                   break;
-        case V2ID(1, 2): c->ly = iev.val / (double) SHRT_MAX; break;
-        case V2ID(2, 1): c->x  = !!iev.val;                   break;
+        case V2ID(0, 1): c->a  = !!iev.value;                   break;
+        case V2ID(0, 2): c->lx = iev.value / (double) SHRT_MAX; break;
+        case V2ID(1, 1): c->b  = !!iev.value;                   break;
+        case V2ID(1, 2): c->ly = iev.value / (double) SHRT_MAX; break;
+        case V2ID(2, 1): c->x  = !!iev.value;                   break;
         case V2ID(2, 2):
-                c->lt = (iev.val + SHRT_MAX) / (2.0 * SHRT_MAX);
+                c->lt = (iev.value + SHRT_MAX) / (2.0 * SHRT_MAX);
                 break;
-        case V2ID(3, 1): c->y  = !!iev.val;                   break;
-        case V2ID(3, 2): c->rx = iev.val / (double) SHRT_MAX; break;
-        case V2ID(4, 1): c->lb = !!iev.val;                   break;
-        case V2ID(4, 2): c->ry = iev.val / (double) SHRT_MAX; break;
-        case V2ID(5, 1): c->rb = !!iev.val;                   break;
+        case V2ID(3, 1): c->y  = !!iev.value;                   break;
+        case V2ID(3, 2): c->rx = iev.value / (double) SHRT_MAX; break;
+        case V2ID(4, 1): c->lb = !!iev.value;                   break;
+        case V2ID(4, 2): c->ry = iev.value / (double) SHRT_MAX; break;
+        case V2ID(5, 1): c->rb = !!iev.value;                   break;
         case V2ID(5, 2):
-                c->rt = (iev.val + SHRT_MAX) / (2.0 * SHRT_MAX);
+                c->rt = (iev.value + SHRT_MAX) / (2.0 * SHRT_MAX);
                 break;
-        case V2ID(6, 1): c->back = !!iev.val;                 break;
+        case V2ID(6, 1): c->back = !!iev.value;                 break;
         case V2ID(6, 2):
-                c->left  = (iev.val == -SHRT_MAX);
-                c->right = (iev.val ==  SHRT_MAX);
+                c->left  = (iev.value == -SHRT_MAX);
+                c->right = (iev.value ==  SHRT_MAX);
                 break;
-        case V2ID(7, 1): c->start = !!iev.val;                break;
+        case V2ID(7, 1): c->start = !!iev.value;                break;
         case V2ID(7, 2):
-                c->up   = (iev.val == -SHRT_MAX);
-                c->down = (iev.val ==  SHRT_MAX);
+                c->up   = (iev.value == -SHRT_MAX);
+                c->down = (iev.value ==  SHRT_MAX);
                 break;
-        case V2ID(8, 1): c->logitech = !!iev.val;             break;
-        case V2ID(9, 1): c->ljb = !!iev.val;                  break;
-        case V2ID(10, 1): c->rjb = !!iev.val;                 break;
+        case V2ID(8, 1): c->logitech = !!iev.value;             break;
+        case V2ID(9, 1): c->ljb      = !!iev.value;             break;
+        case V2ID(10, 1): c->rjb     = !!iev.value;             break;
         }
 
         return 0;
